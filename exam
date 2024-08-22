@@ -1,0 +1,78 @@
+CREATE DATABASE XgameBattle;
+
+USE XgameBattle;
+
+CREATE TABLE PlayerTable (
+    PlayerId varchar(16) PRIMARY KEY,
+    PlayerName nvarchar(120),
+    PlayerNational nvarchar(50)
+);
+
+CREATE TABLE ItemTable (
+    ItemId varchar(16) PRIMARY KEY,
+    ItemName nvarchar(120),
+    ItemTypeId int(4),
+    Price decimal(21, 6)
+);
+
+
+CREATE TABLE ItemTypeTable (
+    ItemTypeId int(4) PRIMARY KEY,
+    ItemTypeName nvarchar(50)
+);
+
+CREATE TABLE PlayerItem (
+    ItemId varchar(16),
+    PlayerId varchar(16),
+    PRIMARY KEY (ItemId, PlayerId),
+    FOREIGN KEY (ItemId) REFERENCES ItemTable(ItemId),
+    FOREIGN KEY (PlayerId) REFERENCES PlayerTable(PlayerId)
+);
+
+INSERT INTO PlayerTable (PlayerId, PlayerName, PlayerNational)
+VALUES 
+    ('2C16E515', 'Player 1', 'Viet Nam'),
+    ('D401EA60', 'Player 2', 'US');
+
+INSERT INTO ItemTable (ItemId, ItemName, ItemTypeId, Price)
+VALUES 
+    ('72B83972', 'Gun', 1, 5),
+    ('83B931C2', 'Bullet', 1, 10),
+    ('97E25C9F', 'Shield', 2, 20);
+
+INSERT INTO ItemTypeTable (ItemTypeId, ItemTypeName)
+VALUES 
+    (1, 'Attack'),
+    (2, 'Defense');
+
+INSERT INTO PlayerItem (ItemId, PlayerId)
+VALUES 
+    ('72B83972', '2C16E515'),
+    ('83B931C2', '2C16E515'),
+    ('97E25C9F', 'D401EA60');
+
+DELIMITER //
+CREATE PROCEDURE sp_GetMaxItemPriceForPlayer1()
+BEGIN
+    SELECT MAX(i.Price) AS MaxPrice
+    FROM PlayerItem pi
+    INNER JOIN ItemTable i ON pi.ItemId = i.ItemId
+    INNER JOIN PlayerTable p ON pi.PlayerId = p.PlayerId
+    WHERE p.PlayerName = 'Player 1';
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE sp_GetPlayerItems()
+BEGIN
+    SELECT p.PlayerName, i.ItemName, it.ItemTypeName, i.Price
+    FROM PlayerTable p
+    INNER JOIN PlayerItem pi ON p.PlayerId = pi.PlayerId
+    INNER JOIN ItemTable i ON pi.ItemId = i.ItemId
+    INNER JOIN ItemTypeTable it ON i.ItemTypeId = it.ItemTypeId
+    ORDER BY p.PlayerName;
+END //
+
+DELIMITER ;
